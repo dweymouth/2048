@@ -1,10 +1,11 @@
+
 function GameManager(size, InputManager, Actuator, ScoreManager) {
   this.size         = size; // Size of the grid
   this.inputManager = new InputManager;
   this.scoreManager = new ScoreManager;
   this.actuator     = new Actuator;
 
-  this.startTiles   = 2;
+  this.startTiles   = 2
 
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
@@ -59,7 +60,17 @@ GameManager.prototype.addStartTiles = function () {
 // Adds a tile in a random position
 GameManager.prototype.addRandomTile = function () {
   if (this.grid.cellsAvailable()) {
-    var value = Math.random() < 0.9 ? 2 : 4;
+    var startNumbers = [4,6,8,9,10,12,14,15,16,18,20,21,22,24,25,
+    26,27,28,30,32,33,34,35,36,38,39,40,42,44,45,46,48,49];
+    var value = Math.random() > 0.98 ? 1 : 
+      startNumbers[Math.floor(Math.random() * startNumbers.length)];
+     // Math.ceil(24*Math.random()) + 1;
+              //rand < 0.25 ? 2
+              //: rand < 0.50 ? 3
+              //: rand < 0.75 ? 4
+              //: 5
+              
+              //Math.random() < 0.9 ? 2 : 4;
     var tile = new Tile(this.grid.randomAvailableCell(), value);
 
     this.grid.insertTile(tile);
@@ -99,6 +110,18 @@ GameManager.prototype.moveTile = function (tile, cell) {
   tile.updatePosition(cell);
 };
 
+function gcd(x,y) {
+  while (x !== y) {
+    if (x > y) x = x - y;
+    else y = y - x;
+  }
+  return x;
+}
+
+canMerge = function(val1,val2) {
+  return val1 === val2 || gcd(val1,val2) > 1;
+}
+
 // Move tiles on the grid in the specified direction
 GameManager.prototype.move = function (direction) {
   // 0: up, 1: right, 2:down, 3: left
@@ -126,8 +149,9 @@ GameManager.prototype.move = function (direction) {
         var next      = self.grid.cellContent(positions.next);
 
         // Only one merger per row traversal?
-        if (next && next.value === tile.value && !next.mergedFrom) {
-          var merged = new Tile(positions.next, tile.value * 2);
+        if (next && canMerge(next.value,tile.value) && !next.mergedFrom) {
+          var merged = new Tile(positions.next, gcd(tile.value,next.value));
+            //tile.value + next.value);
           merged.mergedFrom = [tile, next];
 
           self.grid.insertTile(merged);
@@ -229,7 +253,7 @@ GameManager.prototype.tileMatchesAvailable = function () {
 
           var other  = self.grid.cellContent(cell);
 
-          if (other && other.value === tile.value) {
+          if (other && canMerge(other.value,tile.value)) {
             return true; // These two tiles can be merged
           }
         }
