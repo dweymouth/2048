@@ -28,16 +28,17 @@ KeyboardInputManager.prototype.listen = function () {
     39: 1, // Right
     40: 2, // Down
     37: 3, // Left
-    75: 0, // vim keybindings
-    76: 1,
-    74: 2,
-    72: 3,
+    75: 0, // Vim up
+    76: 1, // Vim right
+    74: 2, // Vim down
+    72: 3, // Vim left
     87: 0, // W
     68: 1, // D
     83: 2, // S
     65: 3  // A
   };
 
+  // Respond to direction keys
   document.addEventListener("keydown", function (event) {
     var modifiers = event.altKey || event.ctrlKey || event.metaKey ||
                     event.shiftKey;
@@ -48,20 +49,20 @@ KeyboardInputManager.prototype.listen = function () {
         event.preventDefault();
         self.emit("move", mapped);
       }
+    }
 
-      if (event.which === 32) self.restart.bind(self)(event);
+    // R key restarts the game
+    if (!modifiers && event.which === 82) {
+      self.restart.call(self, event);
     }
   });
 
-  var retry = document.querySelector(".retry-button");
-  retry.addEventListener("click", this.restart.bind(this));
-  retry.addEventListener("touchend", this.restart.bind(this));
+  // Respond to button presses
+  this.bindButtonPress(".retry-button", this.restart);
+  this.bindButtonPress(".restart-button", this.restart);
+  this.bindButtonPress(".keep-playing-button", this.keepPlaying);
 
-  var keepPlaying = document.querySelector(".keep-playing-button");
-  keepPlaying.addEventListener("click", this.keepPlaying.bind(this));
-  keepPlaying.addEventListener("touchend", this.keepPlaying.bind(this));
-
-  // Listen to swipe events
+  // Respond to swipe events
   var touchStartClientX, touchStartClientY;
   var gameContainer = document.getElementsByClassName("game-container")[0];
 
@@ -101,4 +102,10 @@ KeyboardInputManager.prototype.restart = function (event) {
 KeyboardInputManager.prototype.keepPlaying = function (event) {
   event.preventDefault();
   this.emit("keepPlaying");
+};
+
+KeyboardInputManager.prototype.bindButtonPress = function (selector, fn) {
+  var button = document.querySelector(selector);
+  button.addEventListener("click", fn.bind(this));
+  button.addEventListener(this.eventTouchend, fn.bind(this));
 };
